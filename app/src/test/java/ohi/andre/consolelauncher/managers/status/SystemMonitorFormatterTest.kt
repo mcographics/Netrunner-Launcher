@@ -59,6 +59,7 @@ class SystemMonitorFormatterTest {
                 memoryTotalBytes = 6L * 1024 * 1024 * 1024,
                 storageAvailableBytes = 8L * 1024 * 1024 * 1024,
                 storageTotalBytes = 128L * 1024 * 1024 * 1024,
+                batteryPercent = 73,
                 cpuPercent = 25,
                 gpuPercent = 10,
                 ramPercent = 67,
@@ -72,7 +73,9 @@ class SystemMonitorFormatterTest {
         assertEquals(1, lines.count { it.startsWith("NET ") })
         assertEquals(1, lines.count { it.startsWith("IP ") })
         assertEquals(1, lines.count { it.startsWith("MEM FREE") })
-        assertEquals(1, lines.count { it.startsWith("STORAGE") })
+        assertEquals(1, lines.count { it.startsWith("BATTERY") })
+        assertTrue(lines.single { it.startsWith("BATTERY") }.contains("73%"))
+        assertEquals(0, lines.count { it.startsWith("STORAGE") })
         assertEquals(1, lines.count { it.startsWith("CPU ") })
         assertEquals(1, lines.count { it.startsWith("GPU ") })
         assertEquals(1, lines.count { it.startsWith("RAM ") })
