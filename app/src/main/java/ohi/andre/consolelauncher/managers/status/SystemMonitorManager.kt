@@ -2,6 +2,8 @@ package ohi.andre.consolelauncher.managers.status
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -46,6 +48,7 @@ class SystemMonitorManager(
             memoryTotalBytes = memory.totalMem,
             storageAvailableBytes = storage.availableBytes,
             storageTotalBytes = storage.totalBytes,
+            batteryPercent = readBatteryPercent(),
             cpuPercent = readCpuPercent(),
             gpuPercent = gpuPercent,
             ramPercent = SystemMonitorFormatter.percent(ramUsed, memory.totalMem),
@@ -79,6 +82,22 @@ class SystemMonitorManager(
             label to ip
         }.getOrElse { "OFFLINE" to "--" }
     }
+
+
+    private fun readBatteryPercent(): Int? = runCatching {
+        val intent = context.registerReceiver(
+            null,
+            IntentFilter(Intent.ACTION_BATTERY_CHANGED),
+        ) ?: return@runCatching null
+        val level = intent.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1)
+        val scale = intent.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1)
+        if (level < 0 || scale <= 0) {
+            null
+        } else {
+            ((level * 100f) / scale).toInt().coerceIn(0, 100)
+        }
+    }.getOrNull()
+
 
     private fun readCpuPercent(): Int {
         readSystemCpuTimes()?.let { current ->
