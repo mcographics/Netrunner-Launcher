@@ -40,8 +40,8 @@ android {
         applicationId = "com.dvil.tui_renewed"
         minSdk = 23
         targetSdk = 36
-        versionCode = 409
-        versionName = "2-stable-ime-notifications"
+        versionCode = 410
+        versionName = "2-storage-gauge-battery"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
