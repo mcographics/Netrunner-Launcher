@@ -66,14 +66,14 @@ internal object SystemMonitorFormatter {
         return "█".repeat(filled) + "░".repeat(safeWidth - filled)
     }
 
-    fun formatPanel(snapshot: Snapshot): String {
+    fun formatPanel(snapshot: Snapshot, displayedIpAddress: String = snapshot.ipAddress): String {
         val lines = listOf(
             "────────────────────────────────────────",
             "SYSTEM MONITOR / LIVE",
             "NET      ${snapshot.network.take(29)}",
-            "IP       ${snapshot.ipAddress.take(29)}",
+            "IP       ${displayedIpAddress.take(29)}",
             "MEM FREE ${formatGiB(snapshot.memoryAvailableBytes)} / ${formatGiB(snapshot.memoryTotalBytes)} GIB",
-            meterLine("BATTERY", snapshot.batteryPercent),
+            batteryMeterLine(snapshot.batteryPercent),
             meterLine("CPU", snapshot.cpuPercent),
             meterLine("GPU", snapshot.gpuPercent),
             meterLine("RAM", snapshot.ramPercent),
@@ -85,8 +85,11 @@ internal object SystemMonitorFormatter {
     private fun meterLine(label: String, value: Int?): String {
         val percentage = value?.coerceIn(0, 100)
         val percentageText = percentage?.let { String.format(Locale.US, "%3d%%", it) } ?: " --%"
-        return "$label $percentageText [${activityBar(percentage)}]"
+        return "$label $percentageText  [${activityBar(percentage)}]"
     }
+
+    private fun batteryMeterLine(value: Int?): String =
+        "BATTERY   [${activityBar(value)}]"
 
     private fun formatGiB(bytes: Long): String =
         String.format(Locale.US, "%.2f", bytes.coerceAtLeast(0L) / GIB.toDouble())

@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Environment
 import android.os.StatFs
 import android.util.AttributeSet
 import android.view.View
@@ -40,7 +41,7 @@ class StorageGaugeView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        visibility = INVISIBLE
+        visibility = VISIBLE
         post {
             refreshStorage()
             alignToSystemMonitor()
@@ -70,36 +71,41 @@ class StorageGaugeView @JvmOverloads constructor(
 
         ringPaint.style = Paint.Style.STROKE
         ringPaint.strokeWidth = stroke
-        ringPaint.strokeCap = Paint.Cap.ROUND
-        ringPaint.color = withAlpha(accent, 0.20f)
-        canvas.drawArc(arcBounds, -90f, 360f, false, ringPaint)
-
-        ringPaint.color = accent
-        canvas.drawArc(
-            arcBounds,
-            -90f,
-            360f * (usedPercent.coerceIn(0, 100) / 100f),
-            false,
-            ringPaint,
-        )
+        ringPaint.strokeCap = Paint.Cap.BUTT
+        val usedSlices = ((usedPercent.coerceIn(0, 100) + SLICE_PERCENT / 2) / SLICE_PERCENT)
+            .coerceIn(0, SLICE_COUNT)
+        val sliceSweep = 360f / SLICE_COUNT
+        val sliceGap = 1.5f
+        for (slice in 0 until SLICE_COUNT) {
+            ringPaint.color = if (slice < usedSlices) accent else FREE_COLOR
+            canvas.drawArc(
+                arcBounds,
+                -90f + slice * sliceSweep + sliceGap / 2f,
+                sliceSweep - sliceGap,
+                false,
+                ringPaint,
+            )
+        }
 
         textPaint.color = accent
         textPaint.textAlign = Paint.Align.CENTER
         textPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-        textPaint.textSize = sp(7.5f)
-        canvas.drawText("STORAGE", cx, cy - dp(14f), textPaint)
-
         textPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        textPaint.textSize = sp(18f)
-        canvas.drawText("${usedPercent.coerceIn(0, 100)}%", cx, cy + dp(6f), textPaint)
-
+        textPaint.textSize = sp(17f)
+        canvas.drawText("${usedPercent}%", cx, cy - dp(2f), textPaint)
         textPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-        textPaint.textSize = sp(7.5f)
-        canvas.drawText("USED", cx, cy + dp(20f), textPaint)
+        textPaint.textSize = sp(7f)
+        canvas.drawText("USED", cx, cy + dp(10f), textPaint)
+        textPaint.color = FREE_COLOR
+        canvas.drawText("${100 - usedPercent}% FREE", cx, cy + dp(21f), textPaint)
+        textPaint.color = accent
+        textPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        textPaint.textSize = sp(6f)
+        canvas.drawText("STORAGE", cx, cy + dp(32f), textPaint)
     }
 
     private fun refreshStorage() {
-        val storage = runCatching { StatFs(context.filesDir.absolutePath) }.getOrNull() ?: return
+        val storage = runCatching { StatFs(Environment.getDataDirectory().absolutePath) }.getOrNull() ?: return
         totalBytes = storage.totalBytes.coerceAtLeast(0L)
         availableBytes = storage.availableBytes.coerceIn(0L, totalBytes)
         val usedBytes = (totalBytes - availableBytes).coerceAtLeast(0L)
@@ -113,26 +119,10 @@ class StorageGaugeView @JvmOverloads constructor(
 
     private fun alignToSystemMonitor() {
         val root = parent as? ViewGroup ?: return
-        val monitorView = findMonitorTextView(root) ?: return
-        val textLayout = monitorView.layout ?: return
-
-        val lineIndex = monitorView.text
-            ?.toString()
-            ?.lines()
-            ?.indexOfFirst { it.startsWith("MEM FREE") }
-            ?: -1
-        if (lineIndex < 0 || lineIndex >= textLayout.lineCount) {
-            return
-        }
-
-        val rootLocation = IntArray(2)
-        val monitorLocation = IntArray(2)
-        root.getLocationOnScreen(rootLocation)
-        monitorView.getLocationOnScreen(monitorLocation)
-
-        val lineTop = textLayout.getLineTop(lineIndex)
-        val targetY = monitorLocation[1] - rootLocation[1] + lineTop - dp(8f).toInt()
-        translationY = targetY.coerceAtLeast(0).toFloat()
+        root.clipChildren = false
+        root.clipToPadding = false
+        y = dp(114f)
+        translationX = -dp(5f)
         visibility = VISIBLE
     }
 
@@ -163,5 +153,8 @@ class StorageGaugeView @JvmOverloads constructor(
     companion object {
         private const val REFRESH_INTERVAL_MS = 2_000L
         private const val GIB = 1024L * 1024L * 1024L
+        private const val SLICE_PERCENT = 2
+        private const val SLICE_COUNT = 100 / SLICE_PERCENT
+        private val FREE_COLOR = Color.rgb(150, 180, 195)
     }
 }

@@ -15487,10 +15487,10 @@ class UIManager(
         val widgetTextColor = notificationWidgetTextColor()
         val widgetBorderColor = notificationWidgetBorderColor()
 
-        val maxRows = if (notificationCompactForKeyboard) min(
-            1,
+        val maxRows = min(
+            if (notificationCompactForKeyboard) 2 else 3,
             currentOverlayNotifications.size
-        ) else currentOverlayNotifications.size
+        )
         if (maxRows == 0) {
             val row = buildNotificationRow("No notifications.", widgetTextColor, widgetBorderColor)
             rows.addView(row)
@@ -15507,6 +15507,7 @@ class UIManager(
             val row = buildNotificationDetailRow(notification, widgetTextColor, widgetBorderColor)
             wireNotificationOpen(row, notification)
             rows.addView(row)
+            animateNotificationMatrixReveal(row)
         } else {
             for (i in 0..<maxRows) {
                 val notification = currentOverlayNotifications.get(i)
@@ -15517,6 +15518,7 @@ class UIManager(
                 )
                 wireNotificationOpen(row, notification)
                 rows.addView(row)
+                animateNotificationMatrixReveal(row)
             }
         }
         updateNotificationPagerButtons(notificationWidget)
@@ -15524,6 +15526,62 @@ class UIManager(
 
         if (scrollView != null) {
             scrollView.post(Runnable { scrollView.fullScroll(View.FOCUS_UP) })
+        }
+    }
+
+    private fun animateNotificationMatrixReveal(row: TextView) {
+        if (notificationCompactForKeyboard) return
+
+        val finalText = row.text?.toString().orEmpty()
+        if (finalText.isEmpty()) return
+
+        val frameCount = 7
+        val frameDelayMs = 28L
+        val green = Color.rgb(90, 255, 150)
+        row.setAlpha(0.82f)
+        row.setTranslationY(-Tuils.dpToPx(mContext, 18).toFloat())
+        row.postOnAnimation {
+            row.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(frameCount * frameDelayMs)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+
+        for (frame in 0..frameCount) {
+            row.postDelayed({
+                if (row.parent == null) return@postDelayed
+                if (frame == frameCount) {
+                    row.text = finalText
+                    return@postDelayed
+                }
+
+                val revealCount = (finalText.length * (frame + 1) / frameCount)
+                    .coerceAtLeast(1)
+                val out = SpannableStringBuilder(finalText)
+                for (index in revealCount until finalText.length) {
+                    val original = finalText[index]
+                    val glyph = if (original.isWhitespace()) original else MATRIX_GLYPHS[
+                        (index * 17 + frame * 11 + finalText.length) % MATRIX_GLYPHS.length
+                    ]
+                    out.setSpan(
+                        android.text.style.ForegroundColorSpan(green),
+                        index,
+                        index + 1,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    if (original.isWhitespace()) continue
+                    out.setSpan(
+                        android.text.style.StyleSpan(Typeface.BOLD),
+                        index,
+                        index + 1,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    out.replace(index, index + 1, glyph.toString())
+                }
+                row.text = out
+            }, frame * frameDelayMs)
         }
     }
 
@@ -15555,7 +15613,7 @@ class UIManager(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        lp.bottomMargin = if (notificationCompactForKeyboard) 0 else Tuils.dpToPx(mContext, 6)
+        lp.bottomMargin = if (notificationCompactForKeyboard) 0 else Tuils.dpToPx(mContext, 14)
         row.setLayoutParams(lp)
         row.setTypeface(Tuils.getTypeface(mContext))
         row.setTextSize(moduleBodyTextSize().toFloat())
@@ -16633,6 +16691,7 @@ class UIManager(
         private const val PREF_PODCAST_BADGE_EDGE = "podcast_badge_edge"
         private const val PREF_PODCAST_BADGE_FRACTION = "podcast_badge_fraction"
         private const val ASCII_IDLE_PAUSE_MS = 120_000L
+        private const val MATRIX_GLYPHS = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロ"
         private const val RSS_MODULE_VISIBLE_LINES = 14
         val ACTION_UPDATE_SUGGESTIONS: String =
             BuildConfig.APPLICATION_ID + ".ui_update_suggestions"

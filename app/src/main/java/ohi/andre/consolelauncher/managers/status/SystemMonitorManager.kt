@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Environment
 import android.os.StatFs
 import ohi.andre.consolelauncher.UIManager
 import java.io.File
@@ -31,12 +32,15 @@ class SystemMonitorManager(
     private var previousCpuTimes: SystemMonitorFormatter.CpuTimes? = null
     private val gpuModel by lazy(::readGpuModel)
     private val socModel by lazy(::readSocModel)
+    private var ipRevealGeneration = 0
+    private val pendingIpTransitions = mutableListOf<Runnable>()
+    private var lastSnapshot: SystemMonitorFormatter.Snapshot? = null
 
     override fun update() {
         val memory = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memory)
 
-        val storage = StatFs(context.filesDir.absolutePath)
+        val storage = StatFs(Environment.getDataDirectory().absolutePath)
         val network = readNetwork()
         val gpuPercent = readGpuPercent()
         val ramUsed = (memory.totalMem - memory.availMem).coerceAtLeast(0L)
@@ -56,7 +60,56 @@ class SystemMonitorManager(
             gpuModel = gpuModel,
         )
 
-        listener?.onUpdate(UIManager.Label.ascii, SystemMonitorFormatter.formatPanel(snapshot))
+        lastSnapshot = snapshot
+        publishIpGlitchSequence(snapshot)
+    }
+
+    private fun publishIpGlitchSequence(snapshot: SystemMonitorFormatter.Snapshot) {
+        pendingIpTransitions.forEach(handler::removeCallbacks)
+        pendingIpTransitions.clear()
+        val generation = ++ipRevealGeneration
+        val hasAddress = snapshot.ipAddress.isNotBlank() && snapshot.ipAddress != "--"
+
+        listener?.onUpdate(
+            UIManager.Label.ascii,
+            SystemMonitorFormatter.formatPanel(
+                snapshot,
+                if (hasAddress) snapshot.ipAddress else REDACTED_IP,
+            ),
+        )
+        if (!hasAddress) return
+
+        val frames = listOf(
+            GLITCH_FRAME_ONE,
+            GLITCH_FRAME_TWO,
+            GLITCH_FRAME_THREE,
+            REDACTED_IP,
+        )
+        frames.forEachIndexed { index, frame ->
+            val delayMs = IP_REVEAL_MS + IP_GLITCH_FRAME_MS * index
+            lateinit var transition: Runnable
+            transition = Runnable {
+                if (generation == ipRevealGeneration) {
+                    listener?.onUpdate(
+                        UIManager.Label.ascii,
+                        SystemMonitorFormatter.formatPanel(snapshot, frame),
+                    )
+                }
+                pendingIpTransitions.remove(transition)
+            }
+            pendingIpTransitions.add(transition)
+            handler.postDelayed(transition, delayMs)
+        }
+    }
+
+    override fun stop() {
+        ipRevealGeneration++
+        pendingIpTransitions.forEach(handler::removeCallbacks)
+        pendingIpTransitions.clear()
+        lastSnapshot?.let { snapshot ->
+            listener?.onUpdate(UIManager.Label.ascii, SystemMonitorFormatter.formatPanel(snapshot, REDACTED_IP))
+        }
+        super.stop()
     }
 
     private fun readNetwork(): Pair<String, String> {
@@ -169,4 +222,13 @@ class SystemMonitorManager(
     private fun File.readLongOrNull(): Long? = readTextOrNull()?.trim()?.toLongOrNull()
 
     private fun File.readTextOrNull(): String? = runCatching { readText() }.getOrNull()
+
+    private companion object {
+        const val IP_REVEAL_MS = 300L
+        const val IP_GLITCH_FRAME_MS = 35L
+        const val REDACTED_IP = "REDACTED"
+        const val GLITCH_FRAME_ONE = "▒▒.██.▒▒.██"
+        const val GLITCH_FRAME_TWO = "██.▒▒.██.▒▒"
+        const val GLITCH_FRAME_THREE = "▒#.█▒.##.█▒"
+    }
 }
