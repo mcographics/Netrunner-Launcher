@@ -686,6 +686,18 @@ class AppsManager(context: Context) : XMLPrefsElement {
         return `is`.get(0)
     }
 
+    fun findLaunchInfoWithTypedName(query: String?, type: Int): LaunchInfo? {
+        if (query.isNullOrBlank()) return null
+
+        val appList = if (type == SHOWN_APPS) {
+            appsHolder?.apps
+        } else {
+            hiddenApps
+        } ?: return null
+
+        return InstalledAppNameMatcher.find(query, appList)
+    }
+
     fun writeLaunchTimes(info: LaunchInfo) {
         editor.putInt(info.write(), info.launchedTimes)
         editor.apply()

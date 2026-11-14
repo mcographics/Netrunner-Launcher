@@ -69,6 +69,7 @@ This is a major update focused on making Re:T-UI more reliable, easier to config
 
 ### Other command improvements
 
+- App launch commands now resolve typed names against installed-app labels and package/activity identifiers, so `whatsapp` can open **WA Business** even when its launcher label is different.
 - `alias -file` now opens the built-in Re:T-UI text editor instead of an external file picker.
 - Removed the obsolete `theme` command and legacy online theme manager.
 - Current presets, appearance settings, wallpaper colour extraction, and Tasker theme controls remain available.

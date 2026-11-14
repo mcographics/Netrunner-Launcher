@@ -4,7 +4,7 @@ Netrunner-Launcher is Kenneth Salmon's customized fork of [DvilSpawn's Re:TUI](h
 
 The upstream lineage and credit remain explicit: DvilSpawn develops Re:TUI as a continuation of Francesco Andreuzzi's original [T-UI Console Launcher](https://github.com/fandreuz/TUI-ConsoleLauncher), with work from their respective contributors. Netrunner-Launcher does not claim authorship of that foundation. It preserves the upstream project history and license while applying Kenneth's own interface, dashboard, navigation, notification, weather, and day-to-day launcher customizations.
 
-> **Build 410 fork release:** Netrunner-Launcher now adds a live circular internal-storage gauge to the Home dashboard and replaces the old textual storage row with a live phone battery meter, while retaining the red terminal dashboard, compact weather, real-time CPU/GPU/RAM monitoring, wallpaper-only Home page, fullscreen handling, and notification workflow from Build 409. See [Build 410 Storage Gauge + Battery Monitor](docs/BUILD_410_STORAGE_GAUGE_BATTERY.md) for the release notes.
+> **Build 411 fork release:** Typing an installed app's familiar name now opens it even when Android exposes a different label or package name—for example, `whatsapp` opens **WA Business**. The existing terminal Home UI and appearance remain unchanged. See [Build 411 Typed App Launch](docs/BUILD_411_TYPED_APP_LAUNCH.md) for the release notes.
 
 ---
 

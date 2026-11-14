@@ -625,6 +625,7 @@ class MainManager(private val mContext: LauncherActivity) {
 
             // Check if input exactly matches an app label or component
             val i = appsManager.findLaunchInfoWithLabel(input, AppsManager.SHOWN_APPS)
+                ?: appsManager.findLaunchInfoWithTypedName(input, AppsManager.SHOWN_APPS)
             if (i != null) {
                 // If it matches exactly, and we have arguments, maybe it's NOT an app launch but a command with same name
                 // But TuiCommandTrigger should have caught it first.
