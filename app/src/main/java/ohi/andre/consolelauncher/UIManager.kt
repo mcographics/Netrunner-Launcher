@@ -15537,7 +15537,7 @@ class UIManager(
 
         val frameCount = 7
         val frameDelayMs = 28L
-        val green = Color.rgb(90, 255, 150)
+        val revealColor = notificationWidgetTextColor()
         row.setAlpha(0.82f)
         row.setTranslationY(-Tuils.dpToPx(mContext, 18).toFloat())
         row.postOnAnimation {
@@ -15566,7 +15566,7 @@ class UIManager(
                         (index * 17 + frame * 11 + finalText.length) % MATRIX_GLYPHS.length
                     ]
                     out.setSpan(
-                        android.text.style.ForegroundColorSpan(green),
+                        android.text.style.ForegroundColorSpan(revealColor),
                         index,
                         index + 1,
                         android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE

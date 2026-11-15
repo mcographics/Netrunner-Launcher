@@ -40,8 +40,8 @@ android {
         applicationId = "com.dvil.tui_renewed"
         minSdk = 23
         targetSdk = 36
-        versionCode = 411
-        versionName = "2-typed-app-launch"
+        versionCode = 412
+        versionName = "2-red-notification-output"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

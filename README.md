@@ -4,7 +4,7 @@ Netrunner-Launcher is Kenneth Salmon's customized fork of [DvilSpawn's Re:TUI](h
 
 The upstream lineage and credit remain explicit: DvilSpawn develops Re:TUI as a continuation of Francesco Andreuzzi's original [T-UI Console Launcher](https://github.com/fandreuz/TUI-ConsoleLauncher), with work from their respective contributors. Netrunner-Launcher does not claim authorship of that foundation. It preserves the upstream project history and license while applying Kenneth's own interface, dashboard, navigation, notification, weather, and day-to-day launcher customizations.
 
-> **Build 411 fork release:** Typing an installed app's familiar name now opens it even when Android exposes a different label or package name—for example, `whatsapp` opens **WA Business**. The existing terminal Home UI and appearance remain unchanged. See [Build 411 Typed App Launch](docs/BUILD_411_TYPED_APP_LAUNCH.md) for the release notes.
+> **Build 412 fork release:** Notification output now follows the red terminal theme instead of green and teal defaults. Build 411's installed-app name matching remains included, so `whatsapp` opens **WA Business** while preserving the existing terminal Home UI and appearance. See [Build 412 Red Notification Output](docs/BUILD_412_RED_NOTIFICATION_OUTPUT.md) for the release notes.
 
 ---
 

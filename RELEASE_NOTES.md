@@ -8,6 +8,12 @@ This is a major update focused on making Re:T-UI more reliable, easier to config
 
 ## Highlights
 
+### Red notification output
+
+- The default notification text and format now follow the red terminal theme instead of green and teal defaults.
+- Notification reveal animation uses the configured notification text colour.
+- Existing notification settings and the Home layout are preserved.
+
 ### A complete reminder workflow
 
 - Added a dedicated reminder pane for viewing, adding, editing, and removing reminders.

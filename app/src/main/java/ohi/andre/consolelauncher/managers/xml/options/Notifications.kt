@@ -15,8 +15,12 @@ enum class Notifications(
         "true",
         "If true, Re:T-UI will show notifications from all apps, unless they are explicitly excluded. If false, Re:T-UI won't show a notification from a specific app unless it was \texplicitly included"
     ),
-    notification_text_color("#00FF00", "Notification text color", XMLPrefsSave.COLOR),
-    notification_format("[%t] %pkg: %[100][teal]title --- %text", "The default format", XMLPrefsSave.TEXT),
+    notification_text_color("#ffff1b1b", "Notification text color", XMLPrefsSave.COLOR),
+    notification_format(
+        "[%t] %pkg: %[#ffff1b1b]title --- %[#ffff1b1b]text",
+        "The default format",
+        XMLPrefsSave.TEXT
+    ),
     click_notification(
         "true",
         "If true, Re:T-UI will perform the operation associated with the original notification when you click it"
